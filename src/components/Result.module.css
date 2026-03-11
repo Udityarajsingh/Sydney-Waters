@@ -1,0 +1,14 @@
+.screen{
+  width:387px;
+  height:688px;
+
+  position:relative;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  background:#071a2e;
+  color:white;
+}

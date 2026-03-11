@@ -1,0 +1,528 @@
+
+
+.container{
+  width:387px;
+  height:688px;
+
+  position:relative;
+  z-index:0;
+  overflow:hidden;
+
+  background:url("../assets/background_gradient.webp") no-repeat center;
+  background-size:cover;
+}
+
+/* clouds */
+
+.clouds{
+  position:absolute;
+  top:135px;
+
+  width:300%;
+  left:0;
+
+  pointer-events:none;
+
+  animation:cloudDrift 60s linear infinite alternate;
+}
+@keyframes cloudDrift{
+
+  0%{
+    transform:translateX(0%);
+  }
+
+  100%{
+    transform:translateX(-66%);
+  }
+
+}
+
+/* ufo */
+.ufoBeam{
+  position:absolute;
+  top:37px;
+  left:45%;
+  transform:translateX(-50%);
+  width:170%;
+  pointer-events:none;
+  z-index:50;
+
+  animation:beamCycle 6s infinite;
+}
+.ufo{
+  position:absolute;
+  top:-135px;
+  left:50%;
+  transform:translateX(-50%);
+  width:130%;
+  pointer-events:none;
+}
+
+/* text */
+
+.textBlock{
+  position:absolute;
+  top:180px;
+  width:100%;
+  text-align:center;
+  color:white;
+  z-index:2;
+}
+
+.city{
+  font-size:28px;
+  font-weight:400;
+}
+
+.title{
+  font-size:48px;
+  font-weight:700;
+  letter-spacing:3px;
+}
+
+.subtitle{
+  margin-top:16px;
+
+  font-family:"Bree Serif", serif;
+  font-size:20px;
+
+  text-align:center;
+  color:#FFFFFF;
+
+  line-height:28px;
+
+  width:270px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.play{
+  margin-top:22px;
+  width:180px;
+  cursor:pointer;
+}
+
+/* aliens */
+.alienLeft{
+  position:absolute;
+  bottom:0;
+  left:0px;
+  height:230px;
+  z-index:1;
+}
+
+.alienMiddle{
+  position:absolute;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  height:110px;
+  z-index:1;
+}
+
+.alienRight{
+  position:absolute;
+  bottom:0;
+  right:0px;
+  height:170px;
+  z-index:1;
+}
+
+.playButton{
+  margin-top:39px;
+
+  width:220px;
+  height:53px;
+
+  border:none;
+  border-radius:30px;
+
+  background:#273472;
+  color:white;
+
+  font-family:"Bree Serif", serif;
+  font-size:18px;
+
+  cursor:pointer;
+}
+
+.waterTitle{
+  width:130px;
+  margin:0 auto;
+  display:block;
+
+  position:relative;
+  top:60px;   /* move up */
+}
+
+.contentText{
+  width:220px;
+  margin:20px auto 0 auto;
+  display:block;
+
+  position:relative;
+  top:65px;   /* move up */
+}
+
+.playWrapper{
+  position:absolute;
+  top:220px;   /* change this to move up/down */
+  left:50%;
+  transform:translateX(-50%);
+  width:222px;
+  cursor:pointer;
+}
+
+.buttonBox{
+  width:222px;
+  display:block;
+}
+
+.tapPlay{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width: 94px;
+  pointer-events:none;
+}
+.moveUp{
+  position:relative;
+  top:-56px;
+  transition:top .3s ease;
+}
+.formBlock{
+
+  position:absolute;
+  top:85px;
+  left:50%;
+  transform:translateX(-50%);
+
+  width:240px;
+
+  text-align:center;
+
+}
+.dropdown{
+width:180px;
+height:32px;
+
+margin:7px auto;
+
+background:#ffffff;
+border-radius:20px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+position:relative;
+cursor:pointer;
+
+overflow:visible;
+}
+.dropdownLabel{
+
+height:21px !important;
+width:auto;
+
+display:block;
+
+object-fit:contain;
+
+pointer-events:none;
+
+}
+
+.ageDefaultLabel{
+height:18px !important;
+}
+.dropdownArrow{
+
+position:absolute;
+right:12px;
+
+width:14px;
+height:14px;
+
+}
+.dropdownMenu{
+
+width:210px;
+
+margin:6px auto;
+
+background:white;
+
+border-radius:16px;
+
+padding:12px 0;
+
+display:flex;
+flex-direction:column;
+align-items:center;
+
+position:absolute;
+left:50%;
+transform:translateX(-50%);
+z-index:100;
+
+}
+
+.postcodeBox{
+
+width:180px;
+height:32px;
+
+margin:7px auto;
+
+background:#ffffff;
+border-radius:20px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+position:relative;
+
+cursor:pointer;
+
+}
+
+.keypad{
+
+position:absolute;
+
+left:50%;
+transform:translateX(-50%);
+
+bottom:-130px;
+
+width:264px;
+
+background:rgba(31,31,31,0.86);
+
+padding:8px;
+
+border-radius:6px;
+
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:6px;
+
+z-index:500;
+
+}
+
+.key{
+height:36px;
+border:none;
+border-radius:3px;
+background:#646464;
+color:white;
+font-size:18px;
+}
+
+.keySpacer{
+height:36px;
+pointer-events:none;
+}
+
+.backspaceKey{
+height:36px;
+border:none;
+border-radius:3px;
+background:transparent;
+color:white;
+font-size:22px;
+line-height:1;
+cursor:pointer;
+}
+.option{
+
+height:21px !important;
+max-height:23px;
+
+display:block;
+
+margin:3px 0;
+
+object-fit:contain;
+
+cursor:pointer;
+
+}
+.option img{
+height:20px;
+width:auto;
+}
+.optionUnder18{
+height:20px !important;
+}
+.line{
+width:140px;
+margin:1px 0;
+}
+
+.genderLabel{
+height:14px !important;
+max-height:14px;
+width:auto !important;
+}
+
+.genderSelectedLabel{
+height:20px !important;
+max-height:20px;
+}
+
+.postcodeLabel{
+height:13px !important;
+width:auto !important;
+}
+.postcodeInput{
+
+position:absolute;
+
+width:100%;
+height:100%;
+
+border:none;
+background:none;
+
+text-align:center;
+
+font-family:"Bree Serif", serif !important;
+font-style:normal;
+font-weight:400;
+font-size:18px;
+
+color:#2BACCC;
+
+outline:none;
+
+}
+
+
+
+.about{
+
+  color:white;
+
+  font-family:"Bree Serif";
+  font-size:18px;
+
+  margin-bottom:10px;
+
+}
+
+.input{
+
+  width:210px;
+  height:42px;
+
+  margin:8px auto;
+
+  border-radius:25px;
+  border:none;
+
+  background:#ffffff;
+
+  
+  font-size:20px;
+
+  color:#2BACCC;
+
+  text-align:center;
+  text-align-last:center;
+
+  display:block;
+
+  padding-left:0;
+  padding-right:0;
+
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+
+}
+select.input option{
+
+  
+  font-size:16px;
+
+  color:#2BACCC;
+
+}
+input.input{
+
+  text-align:center;
+
+}
+select.input:focus{
+
+  outline:none;
+
+}
+.postcode{
+  width:210px;
+  height:44px;
+
+  margin:8px auto;
+
+  border-radius:30px;
+  border:none;
+
+  background:#ffffff;
+
+  
+  font-size:22px;
+
+  text-align:center;
+
+  color:#2BACCC;
+}
+.arrow{
+  position:absolute;
+  right:16px;
+  width:14px;
+}
+
+.submit{
+  margin-top:14px;
+
+  width:200px;
+  height:40px;
+
+  border:none;
+  border-radius:20px;
+
+  background:#273472;
+  color:white;
+
+  font-family:"Bree Serif";
+  font-size:14px;
+}
+
+
+
+
+@keyframes beamCycle{
+
+  /* beam fully visible for ~3s */
+  0%{ opacity:1; }
+  50%{ opacity:1; }
+
+  /* flicker phase */
+  55%{ opacity:0; }
+  60%{ opacity:1; }
+  63%{ opacity:0; }
+  67%{ opacity:1; }
+  72%{ opacity:0; }
+  76%{ opacity:1; }
+  80%{ opacity:0; }
+  85%{ opacity:1; }
+
+  /* stable again */
+  100%{ opacity:1; }
+
+}

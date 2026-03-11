@@ -1,0 +1,26 @@
+.canvasWrapper{
+  position:fixed;
+
+  width:387px;
+  height:688px;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+  transform-origin:center center;
+
+  will-change:transform;
+}
+
+.canvas{
+  position:absolute;
+
+  width:387px;
+  height:688px;
+
+  left:0;
+  top:0;
+
+  overflow:hidden;
+}

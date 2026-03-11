@@ -1,0 +1,15 @@
+.appShell {
+  width: 387px;
+  height: 688px;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.screenLayer {
+  width: 387px;
+  height: 688px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
