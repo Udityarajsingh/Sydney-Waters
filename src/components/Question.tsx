@@ -1,5 +1,5 @@
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-import { memo, useMemo, useState, useEffect} from "react";
+import { memo, useMemo, useState, useEffect, useRef } from "react";
 import condensationSvg from "../assets/condensation.svg";
 import precipitationSvg from "../assets/precipitation.svg";
 import evaporationSvg from "../assets/evaporation.svg";
@@ -10,6 +10,10 @@ import damsRiversSvg from "../assets/Dams_Rivers.svg";
 import dragAnswerHereSvg from "../assets/Drag_answer_here.svg";
 import correctPageSvg from "../assets/correct_page.svg";
 import correctPageNextSvg from "../assets/correct_page_next.svg";
+import qFiveBackSvg from "../assets/q_five_back.svg";
+import qFiveNextSvg from "../assets/q_five_next.svg";
+import backButtonSvg from "../assets/back_button.svg";
+import homeButtonSvg from "../assets/home_button.svg";
 import quizOneBg from "../assets/quiz_one_background.webp";
 import oneSvg from "../assets/one.svg";
 import twoSvg from "../assets/two.svg";
@@ -34,8 +38,11 @@ import styles from "./Question.module.css";
 
 type QuestionProps = {
   questionIndex: number;
+  onQuestionCompleted: (questionIndex: number) => void;
   onNext: () => void;
   onRestart: () => void;
+  onBack: () => void;
+  onHome: () => void;
 };
 
 type BoundsRect = {
@@ -263,7 +270,7 @@ const questionVisuals: Record<number, QuestionVisualConfig> = {
         acceptIds: ["let_the_shower", "run_the_dishwasher", "collect_rainwater"],
         pillClassName: styles.q5DropPill,
         iconClassName: styles.q5OptionIcon,
-        nearTolerance: 30
+        nearTolerance: 8
       },
       {
         id: "q5_wise_top",
@@ -271,7 +278,7 @@ const questionVisuals: Record<number, QuestionVisualConfig> = {
         acceptIds: ["turn_the_tap", "use_trigger_nozzle"],
         pillClassName: styles.q5DropPill,
         iconClassName: styles.q5OptionIcon,
-        nearTolerance: 30
+        nearTolerance: 8
       },
       {
         id: "q5_waste_bottom",
@@ -279,7 +286,7 @@ const questionVisuals: Record<number, QuestionVisualConfig> = {
         acceptIds: ["let_the_shower", "run_the_dishwasher", "collect_rainwater"],
         pillClassName: styles.q5DropPill,
         iconClassName: styles.q5OptionIcon,
-        nearTolerance: 30
+        nearTolerance: 8
       },
       {
         id: "q5_wise_bottom",
@@ -287,7 +294,7 @@ const questionVisuals: Record<number, QuestionVisualConfig> = {
         acceptIds: ["turn_the_tap", "use_trigger_nozzle"],
         pillClassName: styles.q5DropPill,
         iconClassName: styles.q5OptionIcon,
-        nearTolerance: 30
+        nearTolerance: 8
       }
     ]
   },
@@ -401,7 +408,6 @@ function DropZone({
   id,
   filled,
   className,
-  showCorrect,
   pillClassName,
   iconClassName,
   placeholderIcon,
@@ -410,7 +416,6 @@ function DropZone({
   id: string;
   filled?: string;
   className?: string;
-  showCorrect?: boolean;
   pillClassName?: string;
   iconClassName?: string;
   placeholderIcon?: string;
@@ -444,13 +449,14 @@ function DropZone({
   );
 }
 
-function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) {
+function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onRestart, onBack, onHome }: QuestionProps) {
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const notifiedCompletionRef = useRef(false);
   const [questionThreeSelectedCorrect, setQuestionThreeSelectedCorrect] = useState<Record<string, boolean>>({});
-  const [questionThreeWrongPulse, setQuestionThreeWrongPulse] = useState<Record<string, boolean>>({});
+  const [questionThreeRejected, setQuestionThreeRejected] = useState<Record<string, boolean>>({});
   const [questionFourSelectedCorrect, setQuestionFourSelectedCorrect] = useState<Record<string, boolean>>({});
-  const [questionFourWrongPulse, setQuestionFourWrongPulse] = useState<Record<string, boolean>>({});
+  const [questionFourRejected, setQuestionFourRejected] = useState<Record<string, boolean>>({});
 
   const questionThreeCorrectIds = useMemo(
     () => new Set(["bath_toilet", "kitchen_sink", "wet_wipes", "milk_oil", "coffee_food_waste"]),
@@ -475,11 +481,21 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
   useEffect(() => {
     setPlaced({});
     setShowSuccess(false);
+    notifiedCompletionRef.current = false;
     setQuestionThreeSelectedCorrect({});
-    setQuestionThreeWrongPulse({});
+    setQuestionThreeRejected({});
     setQuestionFourSelectedCorrect({});
-    setQuestionFourWrongPulse({});
+    setQuestionFourRejected({});
   }, [questionIndex]);
+
+  useEffect(() => {
+    if (!showSuccess || notifiedCompletionRef.current) {
+      return;
+    }
+
+    onQuestionCompleted(questionIndex);
+    notifiedCompletionRef.current = true;
+  }, [onQuestionCompleted, questionIndex, showSuccess]);
   void questionIndex;
 
   const availableOptions = useMemo(
@@ -593,6 +609,10 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
   }
 
   function handleQuestionThreeSelect(optionId: string) {
+    if (questionThreeSelectedCorrect[optionId] || questionThreeRejected[optionId]) {
+      return;
+    }
+
     if (questionThreeCorrectIds.has(optionId)) {
       setQuestionThreeSelectedCorrect((prev) => {
         if (prev[optionId]) {
@@ -609,24 +629,10 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
       return;
     }
 
-    setQuestionThreeWrongPulse((prev) => ({
+    setQuestionThreeRejected((prev) => ({
       ...prev,
-      [optionId]: false
+      [optionId]: true
     }));
-
-    setTimeout(() => {
-      setQuestionThreeWrongPulse((prev) => ({
-        ...prev,
-        [optionId]: true
-      }));
-    }, 0);
-
-    setTimeout(() => {
-      setQuestionThreeWrongPulse((prev) => ({
-        ...prev,
-        [optionId]: false
-      }));
-    }, 320);
   }
 
   function renderQuestionThreeOptions() {
@@ -639,13 +645,14 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
         <div className={styles.q3GroupOneWrap}>
           {questionThreeGroupOneOptions.map((option) => {
             const isSelected = Boolean(questionThreeSelectedCorrect[option.id]);
-            const isWrongPulse = Boolean(questionThreeWrongPulse[option.id]);
+            const isRejected = Boolean(questionThreeRejected[option.id]);
             return (
               <button
                 key={option.id}
                 type="button"
-                className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isWrongPulse ? styles.q3OptionWrongPulse : ""}`}
+                className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isRejected ? styles.q3OptionRejected : ""}`}
                 onClick={() => handleQuestionThreeSelect(option.id)}
+                disabled={isRejected}
               >
                 <span className={`${styles.q3OptionText} ${option.labelClassName ?? ""}`}>
                   {option.label}
@@ -660,13 +667,14 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
         <div className={styles.q3GroupTwoWrap}>
           {questionThreeGroupTwoOptions.map((option) => {
             const isSelected = Boolean(questionThreeSelectedCorrect[option.id]);
-            const isWrongPulse = Boolean(questionThreeWrongPulse[option.id]);
+            const isRejected = Boolean(questionThreeRejected[option.id]);
             return (
               <button
                 key={option.id}
                 type="button"
-                className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isWrongPulse ? styles.q3OptionWrongPulse : ""}`}
+                className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isRejected ? styles.q3OptionRejected : ""}`}
                 onClick={() => handleQuestionThreeSelect(option.id)}
+                disabled={isRejected}
               >
                 <span className={`${styles.q3OptionText} ${option.labelClassName ?? ""}`}>
                   {option.label}
@@ -680,6 +688,10 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
   }
 
   function handleQuestionFourSelect(optionId: string) {
+    if (questionFourSelectedCorrect[optionId] || questionFourRejected[optionId]) {
+      return;
+    }
+
     if (questionFourCorrectIds.has(optionId)) {
       setQuestionFourSelectedCorrect((prev) => {
         if (prev[optionId]) {
@@ -696,24 +708,10 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
       return;
     }
 
-    setQuestionFourWrongPulse((prev) => ({
+    setQuestionFourRejected((prev) => ({
       ...prev,
-      [optionId]: false
+      [optionId]: true
     }));
-
-    setTimeout(() => {
-      setQuestionFourWrongPulse((prev) => ({
-        ...prev,
-        [optionId]: true
-      }));
-    }, 0);
-
-    setTimeout(() => {
-      setQuestionFourWrongPulse((prev) => ({
-        ...prev,
-        [optionId]: false
-      }));
-    }, 320);
   }
 
   function renderQuestionFourOptions() {
@@ -725,14 +723,15 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
       <div className={styles.q4OptionsLayer}>
         {questionFourOptions.map((option) => {
           const isSelected = Boolean(questionFourSelectedCorrect[option.id]);
-          const isWrongPulse = Boolean(questionFourWrongPulse[option.id]);
+          const isRejected = Boolean(questionFourRejected[option.id]);
 
           return (
             <button
               key={option.id}
               type="button"
-              className={`${styles.q4OptionPill} ${option.className} ${isSelected ? styles.q4OptionSelected : ""} ${isWrongPulse ? styles.q4OptionWrongPulse : ""}`}
+              className={`${styles.q4OptionPill} ${option.className} ${isSelected ? styles.q4OptionSelected : ""} ${isRejected ? styles.q4OptionRejected : ""}`}
               onClick={() => handleQuestionFourSelect(option.id)}
+              disabled={isRejected}
             >
               <span className={`${styles.q4OptionText} ${option.labelClassName ?? ""}`}>
                 {option.label}
@@ -749,6 +748,17 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
       className={styles.screen}
       style={{ backgroundImage: `url(${currentVisuals.backgroundImage})` }}
     >
+      {questionIndex <= 4 && (
+        <>
+          <button type="button" className={styles.backButton} onClick={onBack}>
+            <img src={backButtonSvg} className={styles.backButtonImage} draggable={false} alt="Back" />
+          </button>
+          <button type="button" className={styles.homeButton} onClick={onHome}>
+            <img src={homeButtonSvg} className={styles.homeButtonImage} draggable={false} alt="Home" />
+          </button>
+        </>
+      )}
+
       <DndContext
   onDragEnd={handleDragEnd}
   modifiers={[restrictToWindowEdges]}
@@ -802,7 +812,6 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
                 id={drop.id}
                 filled={placed[drop.id]}
                 className={drop.className}
-                showCorrect={false}
                 pillClassName={drop.pillClassName}
                 iconClassName={drop.iconClassName}
                 placeholderIcon={drop.placeholderIcon}
@@ -832,9 +841,21 @@ function QuestionComponent({ questionIndex, onNext, onRestart }: QuestionProps) 
       {showSuccess && (
         <div className={styles.overlay}>
           <div className={styles.successPage}>
-            <img src={correctPageSvg} className={styles.successPageImage} draggable={false} alt="All correct" />
+            <img
+              src={questionIndex === 4 ? qFiveBackSvg : correctPageSvg}
+              className={styles.successPageImage}
+              draggable={false}
+              alt="All correct"
+            />
             {questionIndex === 4 ? (
-              <button className={styles.finishButton} onClick={onNext}>Finish</button>
+              <button className={`${styles.successNextButton} ${styles.successNextButtonQ5}`} onClick={onNext}>
+                <img
+                  src={qFiveNextSvg}
+                  className={styles.successNextImage}
+                  draggable={false}
+                  alt="Next Question"
+                />
+              </button>
             ) : (
               <button className={styles.successNextButton} onClick={onNext}>
                 <img

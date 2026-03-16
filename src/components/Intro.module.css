@@ -12,6 +12,23 @@
   background-size:cover;
 }
 
+.aboutBackButton{
+  position:absolute;
+  left:16px;
+  top:31px;
+  z-index:420;
+  padding:0;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+}
+
+.aboutBackButtonImage{
+  display:block;
+  width:33px;
+  height:auto;
+}
+
 /* clouds */
 
 .clouds{
@@ -45,7 +62,7 @@
   transform:translateX(-50%);
   width:170%;
   pointer-events:none;
-  z-index:50;
+  z-index:1;
 
   animation:beamCycle 6s infinite;
 }
@@ -54,7 +71,7 @@
   top:-135px;
   left:50%;
   transform:translateX(-50%);
-  width:130%;
+  width:125%;
   pointer-events:none;
 }
 
@@ -118,6 +135,20 @@
   transform:translateX(-50%);
   height:110px;
   z-index:1;
+  animation:none;
+  opacity:1;
+}
+
+@keyframes alienMiddleRise{
+  0%{
+    transform:translate(-50%, 48px);
+    opacity:0;
+  }
+
+  100%{
+    transform:translate(-50%, 0);
+    opacity:1;
+  }
 }
 
 .alienRight{
@@ -150,16 +181,16 @@
   width:130px;
   margin:0 auto;
   display:block;
-
+  z-index:999;
   position:relative;
   top:60px;   /* move up */
 }
 
 .contentText{
-  width:220px;
+  width:270px;
   margin:20px auto 0 auto;
   display:block;
-
+  z-index:999;
   position:relative;
   top:65px;   /* move up */
 }
@@ -489,6 +520,7 @@ select.input:focus{
 
 .submit{
   margin-top:14px;
+  margin-left:var(--submit-shift-right, 21px);
 
   width:200px;
   height:40px;
@@ -501,6 +533,25 @@ select.input:focus{
 
   font-family:"Bree Serif";
   font-size:14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.submitIcon{
+  /* Edit these values to control svg size */
+  width:var(--submit-icon-width, 132px);
+  height:var(--submit-icon-height, auto);
+
+  /* Edit these values to control top/right/bottom/left spacing */
+  margin-top:var(--submit-icon-margin-top, 0px);
+  margin-right:var(--submit-icon-margin-right, 0px);
+  margin-bottom:var(--submit-icon-margin-bottom, 0px);
+  margin-left:var(--submit-icon-margin-left, 0px);
+
+  display:block;
+  object-fit:contain;
 }
 
 

@@ -1,7 +1,7 @@
 import { memo, useState, useCallback, useEffect, useRef } from "react"
 import styles from "./Intro.module.css"
 
-import { ref, push } from "firebase/database"
+import { ref, push, set } from "firebase/database"
 import { db } from "../firebase"
 
 import clouds from "../assets/clouds.svg"
@@ -15,7 +15,9 @@ import alienRight from "../assets/alien_right.svg"
 import waterText from "../assets/water.svg"
 import contentText from "../assets/content.svg"
 import tapPlay from "../assets/tap_play.svg"
+import submitAndPlay from "../assets/submit_and_play.svg"
 import buttonBox from "../assets/button_box.svg"
+import backButton from "../assets/back_button.svg"
 
 import ageImg from "../assets/extra/Age.svg"
 import genderImg from "../assets/extra/Gender.svg"
@@ -31,18 +33,21 @@ import age45to54 from "../assets/extra/45to54.svg"
 
 import maleImg from "../assets/extra/male.svg"
 import femaleImg from "../assets/extra/female.svg"
+import preferNotToSayImg from "../assets/prefer_not_to_say.svg"
 
 import line from "../assets/extra/line.svg"
-import gradientBg from "../assets/background_gradient.webp"
-import quizBg from "../assets/quiz_one_background.webp"
+
 type IntroProps = {
-  onStart: () => void
+  onStart: (playerId: string) => void
+  initialShowForm?: boolean
+  onTapToPlay?: () => void
+  onReturnToTapScreen?: () => void
 }
 
-function IntroComponent({ onStart }: IntroProps) {
+function IntroComponent({ onStart, initialShowForm = false, onTapToPlay, onReturnToTapScreen }: IntroProps) {
   const [openAge,setOpenAge] = useState(false)
   const [openGender,setOpenGender] = useState(false)
-  const [showForm,setShowForm] = useState(false)
+  const [showForm,setShowForm] = useState(initialShowForm)
   const keyboardRef = useRef<HTMLDivElement>(null)
   const [form,setForm] = useState({
     age:"",
@@ -87,15 +92,33 @@ return
 
       const usersRef = ref(db,"players")
 
-      await push(usersRef,{
+      const newPlayerRef = push(usersRef)
+
+      await set(newPlayerRef,{
         age:form.age,
         gender:form.gender,
         postcode:form.postcode,
-        createdAt:Date.now()
+        createdAt:Date.now(),
+        quiz: {
+          startedAt: null,
+          endedAt: null,
+          totalTimeMs: null,
+          completed: false,
+          questionTimesMs: {
+            question1: null,
+            question2: null,
+            question3: null,
+            question4: null,
+            question5: null
+          }
+        }
       })
 
-      
-      onStart()
+      if (!newPlayerRef.key) {
+        return
+      }
+
+      onStart(newPlayerRef.key)
 
     }catch(err){
       console.error("Firebase write error",err)
@@ -103,9 +126,32 @@ return
 
   }
 
+  const handleBackFromAbout = useCallback(() => {
+    setOpenAge(false)
+    setOpenGender(false)
+    setShowKeyboard(false)
+    setShowForm(false)
+    onReturnToTapScreen?.()
+  }, [onReturnToTapScreen])
+
+  const handleTapToPlay = useCallback(() => {
+    onTapToPlay?.()
+    setShowForm(true)
+  }, [onTapToPlay])
+
   return(
 
 <section className={styles.container}>
+
+{showForm && (
+<button
+type="button"
+className={styles.aboutBackButton}
+onClick={handleBackFromAbout}
+>
+<img src={backButton} className={styles.aboutBackButtonImage} alt="Back" />
+</button>
+)}
 
 {/* clouds */}
 <img src={clouds} className={styles.clouds} alt="" />
@@ -132,7 +178,7 @@ className={`${styles.contentText} ${showForm ? styles.moveUp : ""}`}
 
 <div
 className={styles.playWrapper}
-onClick={()=>setShowForm(true)}
+onClick={handleTapToPlay}
 >
 
 <img src={buttonBox} className={styles.buttonBox}/>
@@ -244,6 +290,16 @@ setGenderImgSelected(femaleImg)
 setOpenGender(false)}}
 />
 
+<img src={line} className={styles.line}/>
+
+<img
+src={preferNotToSayImg}
+className={styles.option}
+onClick={()=>{handleChange("gender","prefer_not_to_say")
+setGenderImgSelected(preferNotToSayImg)
+setOpenGender(false)}}
+/>
+
 </div>
 
 )}
@@ -317,7 +373,7 @@ onClick={()=>handleChange("postcode",form.postcode.slice(0,-1))}
 className={styles.submit}
 onClick={handleSubmit}
 >
-Submit and play
+<img src={submitAndPlay} alt="Submit and play" className={styles.submitIcon} />
 </button>
 
 </div>

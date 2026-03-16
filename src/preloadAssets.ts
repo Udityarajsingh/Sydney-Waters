@@ -1,4 +1,3 @@
-import gradientBg from "./assets/background_gradient.webp"
 import quiz1 from "./assets/quiz_one_background.webp"
 import quiz2 from "./assets/quiz_two_background.webp"
 import quiz3 from "./assets/quiz_three_background.webp"
@@ -33,7 +32,7 @@ import correctNext from "./assets/correct_page_next.svg"
 import playAgain from "./assets/play_again.svg"
 
 const assets = [
-  gradientBg,
+  
   quiz1,
   quiz2,
   quiz3,

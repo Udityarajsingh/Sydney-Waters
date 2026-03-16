@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "players": {
+      ".read": true,
+
+      "$playerId": {
+        ".write": true,
+        ".validate": "
+          newData.hasChildren(['age','gender','postcode','createdAt']) &&
+          newData.child('age').isString() &&
+          newData.child('gender').isString() &&
+          newData.child('postcode').isString() &&
+          newData.child('createdAt').isNumber()
+        "
+      }
+    }
+  }
+}
