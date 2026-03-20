@@ -39,10 +39,18 @@ function App(){
     question4: false,
     question5: false
   })
+  const wrongAnswerCountRef = useRef<Record<QuizQuestionKey, number>>({
+    question1: 0,
+    question2: 0,
+    question3: 0,
+    question4: 0,
+    question5: 0
+  })
   const bgMusicRef = useRef<HTMLAudioElement | null>(null)
 
   const [mode] = useState<AppMode>(() => {
-    if (window.location.pathname.toLowerCase() === "/dashboard") {
+    const path = window.location.pathname.toLowerCase()
+    if (path === "/dashboard" || path === "/other-dashboard") {
       return "dashboard"
     }
     return "quiz"
@@ -63,6 +71,13 @@ function App(){
       question3: false,
       question4: false,
       question5: false
+    }
+    wrongAnswerCountRef.current = {
+      question1: 0,
+      question2: 0,
+      question3: 0,
+      question4: 0,
+      question5: 0
     }
   },[])
 
@@ -94,9 +109,32 @@ function App(){
     const playerRef = ref(db,`players/${activePlayerId}`)
 
     await update(playerRef, {
-      [`quiz/questionTimesMs/${questionKey}`]: elapsedMs
+      [`quiz/questionTimesMs/${questionKey}`]: elapsedMs,
+      [`quiz/wrongAnswersCount/${questionKey}`]: wrongAnswerCountRef.current[questionKey]
     })
     recordedQuestionTimesRef.current[questionKey] = true
+  },[activePlayerId])
+
+  const recordWrongAnswer = useCallback((questionIdx: number)=>{
+    const activeQuestionIndex = currentQuestionIndexRef.current ?? questionIdx
+    const questionKey = questionKeyByIndex[activeQuestionIndex]
+    if (!questionKey) {
+      return
+    }
+
+    wrongAnswerCountRef.current[questionKey] += 1
+
+    if (!activePlayerId) {
+      return
+    }
+
+    const totalWrongAnswers = Object.values(wrongAnswerCountRef.current).reduce((sum, count) => sum + count, 0)
+    const playerRef = ref(db,`players/${activePlayerId}`)
+
+    void update(playerRef, {
+      [`quiz/wrongAnswersCount/${questionKey}`]: wrongAnswerCountRef.current[questionKey],
+      "quiz/totalWrongAnswers": totalWrongAnswers
+    })
   },[activePlayerId])
 
   const finishQuizSession = useCallback(async()=>{
@@ -106,10 +144,12 @@ function App(){
 
     const endedAt = Date.now()
     const playerRef = ref(db,`players/${activePlayerId}`)
+    const totalWrongAnswers = Object.values(wrongAnswerCountRef.current).reduce((sum, count) => sum + count, 0)
 
     await update(playerRef, {
       "quiz/endedAt": endedAt,
       "quiz/totalTimeMs": endedAt - timerStartRef.current,
+      "quiz/totalWrongAnswers": totalWrongAnswers,
       "quiz/completed": true
     })
   },[activePlayerId])
@@ -267,6 +307,7 @@ function App(){
             onRestart={handleRestart}
             onBack={handleBackQuestion}
             onHome={handleHomeFromQuestion}
+            onWrongAnswer={recordWrongAnswer}
           />
         )}
 

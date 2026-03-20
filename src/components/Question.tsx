@@ -43,6 +43,7 @@ type QuestionProps = {
   onRestart: () => void;
   onBack: () => void;
   onHome: () => void;
+  onWrongAnswer: (questionIndex: number) => void;
 };
 
 type BoundsRect = {
@@ -449,7 +450,7 @@ function DropZone({
   );
 }
 
-function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onRestart, onBack, onHome }: QuestionProps) {
+function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onRestart, onBack, onHome, onWrongAnswer }: QuestionProps) {
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const notifiedCompletionRef = useRef(false);
@@ -579,6 +580,9 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
       if (isAccepted) {
         placeAnswer(dropId, optionId);
         return;
+      } else {
+        onWrongAnswer(questionIndex);
+        return;
       }
     }
 
@@ -605,11 +609,18 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
     const nearDropId = findNearCorrectDrop(optionId, activeBounds);
     if (nearDropId) {
       placeAnswer(nearDropId, optionId);
+    } else {
+      onWrongAnswer(questionIndex);
     }
   }
 
   function handleQuestionThreeSelect(optionId: string) {
-    if (questionThreeSelectedCorrect[optionId] || questionThreeRejected[optionId]) {
+    if (questionThreeSelectedCorrect[optionId]) {
+      return;
+    }
+
+    if (questionThreeRejected[optionId]) {
+      onWrongAnswer(questionIndex);
       return;
     }
 
@@ -629,6 +640,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
       return;
     }
 
+    onWrongAnswer(questionIndex);
     setQuestionThreeRejected((prev) => ({
       ...prev,
       [optionId]: true
@@ -652,7 +664,6 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
                 type="button"
                 className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isRejected ? styles.q3OptionRejected : ""}`}
                 onClick={() => handleQuestionThreeSelect(option.id)}
-                disabled={isRejected}
               >
                 <span className={`${styles.q3OptionText} ${option.labelClassName ?? ""}`}>
                   {option.label}
@@ -674,7 +685,6 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
                 type="button"
                 className={`${styles.q3OptionPill} ${option.className} ${isSelected ? styles.q3OptionSelected : ""} ${isRejected ? styles.q3OptionRejected : ""}`}
                 onClick={() => handleQuestionThreeSelect(option.id)}
-                disabled={isRejected}
               >
                 <span className={`${styles.q3OptionText} ${option.labelClassName ?? ""}`}>
                   {option.label}
@@ -688,7 +698,12 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
   }
 
   function handleQuestionFourSelect(optionId: string) {
-    if (questionFourSelectedCorrect[optionId] || questionFourRejected[optionId]) {
+    if (questionFourSelectedCorrect[optionId]) {
+      return;
+    }
+
+    if (questionFourRejected[optionId]) {
+      onWrongAnswer(questionIndex);
       return;
     }
 
@@ -708,6 +723,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
       return;
     }
 
+    onWrongAnswer(questionIndex);
     setQuestionFourRejected((prev) => ({
       ...prev,
       [optionId]: true
@@ -731,7 +747,6 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
               type="button"
               className={`${styles.q4OptionPill} ${option.className} ${isSelected ? styles.q4OptionSelected : ""} ${isRejected ? styles.q4OptionRejected : ""}`}
               onClick={() => handleQuestionFourSelect(option.id)}
-              disabled={isRejected}
             >
               <span className={`${styles.q4OptionText} ${option.labelClassName ?? ""}`}>
                 {option.label}
