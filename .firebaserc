@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "sydney-waters"
-  }
+    "default": "sydney-waters",
+    "water": "sydney-water-cf1f5"
+  },
+  "targets": {},
+  "etags": {}
 }

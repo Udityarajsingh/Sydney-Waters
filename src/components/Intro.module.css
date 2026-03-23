@@ -168,7 +168,7 @@
   border:none;
   border-radius:30px;
 
-  background:#273472;
+  background:#1B2563;
   color:white;
 
   font-family:"Bree Serif", serif;
@@ -268,6 +268,11 @@ pointer-events:none;
 .ageDefaultLabel{
 height:18px !important;
 }
+
+.ageCompactSelectedLabel{
+height:13px !important;
+max-height:13px;
+}
 .dropdownArrow{
 
 position:absolute;
@@ -298,6 +303,18 @@ left:50%;
 transform:translateX(-50%);
 z-index:100;
 
+}
+
+.ageDropdownMenu{
+margin:1px auto;
+}
+
+.genderDropdown{
+margin-top:3px;
+}
+
+.genderDropdownMenu{
+margin:1px auto;
 }
 
 .postcodeBox{
@@ -389,6 +406,18 @@ width:auto;
 }
 .optionUnder18{
 height:20px !important;
+}
+
+.optionBelow12{
+height:13px !important;
+padding:2.1px 0;
+box-sizing:content-box;
+}
+
+.option13To17{
+height:13px !important;
+padding:2.1px 0;
+box-sizing:content-box;
 }
 .line{
 width:140px;
@@ -528,7 +557,7 @@ select.input:focus{
   border:none;
   border-radius:20px;
 
-  background:#273472;
+  background:#1B2563;
   color:white;
 
   font-family:"Bree Serif";

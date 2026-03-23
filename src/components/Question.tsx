@@ -311,21 +311,21 @@ const questionThreeGroupOneOptions: QuestionSelectOption[] = [
   { id: "crying_robots", label: "Crying robots", className: styles.q3G1CryRobots },
   { id: "bath_toilet", label: "Bath and toilet", className: styles.q3G1BathToilet },
   { id: "kitchen_sink", label: "Kitchen sink", className: styles.q3G1KitchenSink },
-  { id: "alien_spaceships", label: "Alien Spaceships", className: styles.q3G1AlienSpaceships },
+  { id: "alien_spaceships", label: "Alien spaceships", className: styles.q3G1AlienSpaceships },
   { id: "factories_shops", label: "Factories and shops", className: styles.q3G1FactoriesShops }
 ];
 
 const questionThreeGroupTwoOptions: QuestionSelectOption[] = [
-  { id: "wet_wipes", label: "Wet Wipes", className: styles.q3G2WetWipes },
-  { id: "toothpaste", label: "Toothpaste", className: styles.q3G2Toothpaste },
-  { id: "soap_bubbles", label: "Soap bubbles", className: styles.q3G2SoapBubbles },
+  { id: "wet_wipes", label: "Wet wipes", className: styles.q3G2WetWipes },
+  { id: "toothpaste", label: "Toothpaste", className: styles.q3G2SoapBubbles },
+  { id: "soap_bubbles", label: "Soap bubbles", className: styles.q3G2Toothpaste },
   {
     id: "coffee_food_waste",
-    label: "Coffee Grounds and Food Waste",
-    className: styles.q3G2CoffeeFood,
+    label: "Coffee grounds and food waste",
+    className: styles.q3G2MilkOil,
     labelClassName: styles.q3SmallLabel
   },
-  { id: "milk_oil", label: "Milk and Oil", className: styles.q3G2MilkOil }
+  { id: "milk_oil", label: "Milk and oil", className: styles.q3G2CoffeeFood }
 ];
 
 const questionFourOptions: QuestionSelectOptionText[] = [
@@ -454,13 +454,14 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const notifiedCompletionRef = useRef(false);
+  const successDelayTimeoutRef = useRef<number | null>(null);
   const [questionThreeSelectedCorrect, setQuestionThreeSelectedCorrect] = useState<Record<string, boolean>>({});
   const [questionThreeRejected, setQuestionThreeRejected] = useState<Record<string, boolean>>({});
   const [questionFourSelectedCorrect, setQuestionFourSelectedCorrect] = useState<Record<string, boolean>>({});
   const [questionFourRejected, setQuestionFourRejected] = useState<Record<string, boolean>>({});
 
   const questionThreeCorrectIds = useMemo(
-    () => new Set(["bath_toilet", "kitchen_sink", "wet_wipes", "milk_oil", "coffee_food_waste"]),
+    () => new Set(["bath_toilet", "kitchen_sink", "factories_shops", "wet_wipes", "milk_oil", "coffee_food_waste"]),
     []
   );
 
@@ -483,6 +484,10 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
     setPlaced({});
     setShowSuccess(false);
     notifiedCompletionRef.current = false;
+    if (successDelayTimeoutRef.current !== null) {
+      window.clearTimeout(successDelayTimeoutRef.current);
+      successDelayTimeoutRef.current = null;
+    }
     setQuestionThreeSelectedCorrect({});
     setQuestionThreeRejected({});
     setQuestionFourSelectedCorrect({});
@@ -497,6 +502,22 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
     onQuestionCompleted(questionIndex);
     notifiedCompletionRef.current = true;
   }, [onQuestionCompleted, questionIndex, showSuccess]);
+
+  function triggerSuccessInterface() {
+    if (showSuccess || successDelayTimeoutRef.current !== null) {
+      return;
+    }
+
+    successDelayTimeoutRef.current = window.setTimeout(() => {
+      setShowSuccess(true);
+      successDelayTimeoutRef.current = null;
+    }, 2000);
+  }
+
+  function handleSuccessNext() {
+    onNext();
+  }
+
   void questionIndex;
 
   const availableOptions = useMemo(
@@ -526,7 +547,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
     setPlaced(newPlaced);
 
     if (Object.keys(newPlaced).length === currentVisuals.drops.length) {
-      setShowSuccess(true);
+      triggerSuccessInterface();
     }
   }
 
@@ -632,7 +653,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
 
         const next = { ...prev, [optionId]: true };
         if (Object.keys(next).length === questionThreeCorrectIds.size) {
-          setShowSuccess(true);
+          triggerSuccessInterface();
         }
 
         return next;
@@ -715,7 +736,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
 
         const next = { ...prev, [optionId]: true };
         if (Object.keys(next).length === questionFourCorrectIds.size) {
-          setShowSuccess(true);
+          triggerSuccessInterface();
         }
 
         return next;
@@ -863,7 +884,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
               alt="All correct"
             />
             {questionIndex === 4 ? (
-              <button className={`${styles.successNextButton} ${styles.successNextButtonQ5}`} onClick={onNext}>
+              <button className={`${styles.successNextButton} ${styles.successNextButtonQ5}`} onClick={handleSuccessNext}>
                 <img
                   src={qFiveNextSvg}
                   className={styles.successNextImage}
@@ -872,7 +893,7 @@ function QuestionComponent({ questionIndex, onQuestionCompleted, onNext, onResta
                 />
               </button>
             ) : (
-              <button className={styles.successNextButton} onClick={onNext}>
+              <button className={styles.successNextButton} onClick={handleSuccessNext}>
                 <img
                   src={correctPageNextSvg}
                   className={styles.successNextImage}

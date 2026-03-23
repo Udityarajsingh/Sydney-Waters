@@ -302,6 +302,11 @@
   pointer-events:none;
 }
 
+.q3OptionRejected .q3OptionText{
+  text-decoration:line-through;
+  text-decoration-thickness:1.1px;
+}
+
 .q3SmallLabel{
   font-size:9px;
 }
@@ -419,6 +424,11 @@
   opacity:0.6;
   cursor:not-allowed;
   pointer-events:none;
+}
+
+.q4OptionRejected .q4OptionText{
+  text-decoration:line-through;
+  text-decoration-thickness:2px;
 }
 
 /* ================= QUESTION NAV BUTTONS ================= */
@@ -583,7 +593,7 @@
 .finalPlayAgainButton{
   position:absolute;
   left:100px;
-  top:236px;
+  top:252px;
   z-index:260;
   padding:0;
   border:none;

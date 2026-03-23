@@ -25,6 +25,8 @@ import postcodeImg from "../assets/extra/Postcode.svg"
 
 import arrowDown from "../assets/extra/arrow_down.svg"
 
+import below12 from "../assets/below_12.svg"
+import age13to17 from "../assets/13_to_17.svg"
 import under18 from "../assets/extra/under_18.svg"
 import age18to24 from "../assets/extra/18to24.svg"
 import age25to34 from "../assets/extra/25to34.svg"
@@ -33,6 +35,7 @@ import age45to54 from "../assets/extra/45to54.svg"
 
 import maleImg from "../assets/extra/male.svg"
 import femaleImg from "../assets/extra/female.svg"
+import nonBinaryImg from "../assets/non_binary.svg"
 import preferNotToSayImg from "../assets/prefer_not_to_say.svg"
 
 import line from "../assets/extra/line.svg"
@@ -196,16 +199,46 @@ onClick={handleTapToPlay}
 <p className={styles.about}>About me</p>
 
 {/* AGE */}
-<div className={styles.dropdown} onClick={()=>setOpenAge(!openAge)}>
+<div className={styles.dropdown} onClick={()=>{
+setOpenAge(prev => {
+  const next = !prev
+  if(next){
+    setOpenGender(false)
+  }
+  return next
+})
+}}>
   <img
 src={ageImgSelected}
-className={`${styles.dropdownLabel} ${ageImgSelected === ageImg ? styles.ageDefaultLabel : ""}`}
+className={`${styles.dropdownLabel} ${ageImgSelected === ageImg ? styles.ageDefaultLabel : ""} ${ageImgSelected === below12 || ageImgSelected === age13to17 ? styles.ageCompactSelectedLabel : ""}`}
 />
   <img src={arrowDown} className={styles.dropdownArrow}/>
 </div>
 
 {openAge && (
-<div className={styles.dropdownMenu}>
+<div className={`${styles.dropdownMenu} ${styles.ageDropdownMenu}`}>
+
+<img
+src={below12}
+className={`${styles.option} ${styles.optionBelow12}`}
+onClick={()=>{handleChange("age","below_12")
+setAgeImgSelected(below12)
+setOpenAge(false)
+}}
+/>
+
+<img src={line} className={styles.line}/>
+
+<img
+src={age13to17}
+className={`${styles.option} ${styles.option13To17}`}
+onClick={()=>{handleChange("age","13_to_17")
+setAgeImgSelected(age13to17)
+setOpenAge(false)
+}}
+/>
+
+<img src={line} className={styles.line}/>
 
 <img
 src={under18}
@@ -258,7 +291,15 @@ setOpenAge(false)}}
 
 {/* GENDER */}
 
-<div className={styles.dropdown} onClick={()=>setOpenGender(!openGender)}>
+<div className={`${styles.dropdown} ${styles.genderDropdown}`} onClick={()=>{
+setOpenGender(prev => {
+  const next = !prev
+  if(next){
+    setOpenAge(false)
+  }
+  return next
+})
+}}>
   <img
 src={genderImgSelected}
 className={`${styles.dropdownLabel} ${styles.genderLabel} ${genderImgSelected !== genderImg ? styles.genderSelectedLabel : ""}`}
@@ -268,7 +309,7 @@ className={`${styles.dropdownLabel} ${styles.genderLabel} ${genderImgSelected !=
 
 {openGender && (
 
-<div className={styles.dropdownMenu}>
+<div className={`${styles.dropdownMenu} ${styles.genderDropdownMenu}`}>
 
 <img
 src={maleImg}
@@ -287,6 +328,16 @@ src={femaleImg}
 className={styles.option}
 onClick={()=>{handleChange("gender","female")
 setGenderImgSelected(femaleImg)
+setOpenGender(false)}}
+/>
+
+<img src={line} className={styles.line}/>
+
+<img
+src={nonBinaryImg}
+className={styles.option}
+onClick={()=>{handleChange("gender","non_binary")
+setGenderImgSelected(nonBinaryImg)
 setOpenGender(false)}}
 />
 

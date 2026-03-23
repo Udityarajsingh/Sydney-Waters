@@ -75,6 +75,8 @@ function displayGender(gender?: string) {
 
 function displayAge(age?: string) {
   if (!age) return "Unknown"
+  if (age === "below_12") return "below 12"
+  if (age === "13_to_17") return "13 to 17"
   if (age === "under18") return "Under 18"
   if (age === "18to24") return "18 to 24"
   if (age === "25to34") return "25 to 34"
