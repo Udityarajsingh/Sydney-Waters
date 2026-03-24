@@ -150,6 +150,113 @@
   flex: 1;
 }
 
+.loginContent {
+  display: grid;
+  place-items: center;
+}
+
+.loginPanel {
+  width: min(100%, 520px);
+}
+
+.loginCard {
+  border: 1px solid #b9d2ea;
+  border-radius: 14px;
+  background: #f4f9ff;
+  padding: 28px;
+  box-shadow: 0 12px 28px rgba(26, 84, 143, 0.12);
+}
+
+.loginTitle {
+  margin: 0 0 18px;
+  color: #0f66bd;
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 700;
+  text-align: center;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loginInput {
+  border: 1px solid #b8d0e8;
+  background: #ffffff;
+  border-radius: 10px;
+  min-height: 48px;
+  color: #344a61;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  font-family: 'Inter', sans-serif;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordInput {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6e87a1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.passwordToggle:hover {
+  background: #e8f1fb;
+  color: #0f66bd;
+}
+
+.eyeIcon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.loginButton {
+  border: 1px solid #0f73cd;
+  background: #0f73cd;
+  color: #ffffff;
+  border-radius: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.loginButton:hover {
+  background: #0b67ba;
+  border-color: #0b67ba;
+}
+
+.loginError {
+  margin: 10px 0 0;
+  color: #bb1a26;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(160px, 1fr));

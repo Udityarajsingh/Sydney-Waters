@@ -39,6 +39,7 @@ import nonBinaryImg from "../assets/non_binary.svg"
 import preferNotToSayImg from "../assets/prefer_not_to_say.svg"
 
 import line from "../assets/extra/line.svg"
+import aboutMeSvg from "../assets/About_me.svg"
 
 type IntroProps = {
   onStart: (playerId: string) => void
@@ -196,7 +197,7 @@ onClick={handleTapToPlay}
 
 <div className={styles.formBlock}>
 
-<p className={styles.about}>About me</p>
+<img src={aboutMeSvg} className={styles.aboutMeImage} alt="About me" />
 
 {/* AGE */}
 <div className={styles.dropdown} onClick={()=>{
@@ -399,7 +400,12 @@ handleChange("postcode",form.postcode + num)
 
 ))}
 
-<span className={styles.keySpacer} aria-hidden="true" />
+<button
+className={styles.tickKey}
+onClick={()=>setShowKeyboard(false)}
+>
+✓
+</button>
 
 <button
 className={styles.key}

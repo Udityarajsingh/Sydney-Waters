@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { onValue, ref } from "firebase/database"
 import { db } from "../firebase"
 import styles from "./Dashboard.module.css"
@@ -174,6 +174,11 @@ function getNegativeAnswerBadgesWithCount(wrongAnswers: QuizWrongAnswers) {
 }
 
 export function Dashboard() {
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [activeView, setActiveView] = useState<DashboardView>("quiz")
   const [players, setPlayers] = useState<PlayerWithId[]>([])
   const [readError, setReadError] = useState<string | null>(null)
@@ -187,6 +192,18 @@ export function Dashboard() {
     from: "",
     to: ""
   })
+
+  function handleLoginSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (username === "Sydney@admin" && password === "sydney#2026") {
+      setIsAuthenticated(true)
+      setAuthError(null)
+      return
+    }
+
+    setAuthError("Invalid credentials")
+  }
 
   useEffect(() => {
     const playersRef = ref(db, "players")
@@ -567,6 +584,76 @@ export function Dashboard() {
           <p className={styles.usageCardValue}>8,492</p>
         </section>
       </>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className={styles.page}>
+        <aside className={styles.sidebar}>
+          <div className={styles.brand}>
+            <h1 className={styles.brandText}>Sydney Water</h1>
+          </div>
+
+          <section className={styles.navSection}>
+            <p className={styles.navLabel}>APPLICATIONS</p>
+
+            Dashboard Login
+          </section>
+        </aside>
+
+        <section className={styles.main}>
+          
+
+          <section className={`${styles.content} ${styles.loginContent}`}>
+            <div className={styles.loginPanel}>
+              <div className={styles.loginCard}>
+                <h3 className={styles.loginTitle}>Admin Login</h3>
+
+                <form className={styles.loginForm} onSubmit={handleLoginSubmit}>
+                  <input
+                    type="text"
+                    className={styles.loginInput}
+                    placeholder="Email"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    autoComplete="username"
+                    aria-label="Dashboard username"
+                  />
+                  <div className={styles.passwordField}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`${styles.loginInput} ${styles.passwordInput}`}
+                      placeholder="Password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      autoComplete="current-password"
+                      aria-label="Dashboard password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <svg viewBox="0 0 24 24" className={styles.eyeIcon} aria-hidden="true" focusable="false">
+                        <path d="M12 5C6.8 5 2.4 8.1 1 12c1.4 3.9 5.8 7 11 7s9.6-3.1 11-7c-1.4-3.9-5.8-7-11-7Zm0 11.2A4.2 4.2 0 1 1 12 7.8a4.2 4.2 0 0 1 0 8.4Z" />
+                        <circle cx="12" cy="12" r="2.2" />
+                      </svg>
+                    </button>
+                  </div>
+                  <button type="submit" className={styles.loginButton}>
+                    Login
+                  </button>
+                </form>
+
+                {authError && <p className={styles.loginError}>{authError}</p>}
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
     )
   }
 
