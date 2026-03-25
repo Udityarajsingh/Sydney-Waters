@@ -44,6 +44,18 @@ type DateRangeValue = {
   to: string
 }
 
+const AGE_FILTER_OPTIONS = [
+  "below 12",
+  "13 to 17",
+  "Under 18",
+  "18 to 24",
+  "25 to 34",
+  "35 to 44",
+  "45 to 54"
+]
+
+const GENDER_FILTER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say"]
+
 const emptyTimes: QuizTimes = {
   question1: null,
   question2: null,
@@ -68,22 +80,32 @@ function displayGender(gender?: string) {
   const normalized = (gender ?? "").toLowerCase().trim()
   if (normalized === "male") return "Male"
   if (normalized === "female") return "Female"
-  if (normalized === "non_binary" || normalized === "non-binary") return "Non-binary"
-  if (normalized === "prefer_not_to_say") return "Prefer not to say"
+  if (
+    normalized === "non_binary" ||
+    normalized === "non-binary" ||
+    normalized === "non binary" ||
+    normalized === "nonbinary"
+  ) {
+    return "Non-binary"
+  }
+  if (normalized === "prefer_not_to_say" || normalized === "prefer not to say") {
+    return "Prefer not to say"
+  }
   return gender && gender.length > 0 ? gender : "Unknown"
 }
 
 function displayAge(age?: string) {
-  if (!age) return "Unknown"
-  if (age === "below_12") return "below 12"
-  if (age === "13_to_17") return "13 to 17"
-  if (age === "under18") return "Under 18"
-  if (age === "18to24") return "18 to 24"
-  if (age === "25to34") return "25 to 34"
-  if (age === "35to44") return "35 to 44"
-  if (age === "45to54") return "45 to 54"
-  if (age === "prefer_not_to_say") return "Prefer not to say"
-  return age
+  const normalized = (age ?? "").toLowerCase().trim()
+  if (!normalized) return "Unknown"
+  if (normalized === "below_12" || normalized === "below 12") return "below 12"
+  if (normalized === "13_to_17" || normalized === "13 to 17") return "13 to 17"
+  if (normalized === "under18" || normalized === "under_18" || normalized === "under 18") return "Under 18"
+  if (normalized === "18to24" || normalized === "18_to_24" || normalized === "18 to 24") return "18 to 24"
+  if (normalized === "25to34" || normalized === "25_to_34" || normalized === "25 to 34") return "25 to 34"
+  if (normalized === "35to44" || normalized === "35_to_44" || normalized === "35 to 44") return "35 to 44"
+  if (normalized === "45to54" || normalized === "45_to_54" || normalized === "45 to 54") return "45 to 54"
+  if (normalized === "prefer_not_to_say" || normalized === "prefer not to say") return "Prefer not to say"
+  return age ?? "Unknown"
 }
 
 function msToDisplay(ms: number | null | undefined) {
@@ -288,13 +310,8 @@ export function Dashboard() {
       return player.createdAt >= startMs && player.createdAt <= endMs
     })
 
-    const ageOptions = Array.from(
-      new Set(inDateRange.map((player) => displayAge(player.age)).filter((value) => value !== "Unknown"))
-    ).sort((a, b) => a.localeCompare(b))
-
-    const genderOptions = Array.from(
-      new Set(inDateRange.map((player) => displayGender(player.gender)).filter((value) => value !== "Unknown"))
-    ).sort((a, b) => a.localeCompare(b))
+    const ageOptions = AGE_FILTER_OPTIONS
+    const genderOptions = GENDER_FILTER_OPTIONS
 
     const filteredRows = inDateRange.filter((player) => {
       const ageOk = selectedAgeFilter === "all" || displayAge(player.age) === selectedAgeFilter
@@ -614,7 +631,7 @@ export function Dashboard() {
                   <input
                     type="text"
                     className={styles.loginInput}
-                    placeholder="Email"
+                    placeholder="User"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
                     autoComplete="username"

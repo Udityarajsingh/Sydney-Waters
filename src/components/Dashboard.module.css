@@ -291,7 +291,7 @@
   border: 1px solid #d8dee6;
   border-radius: 9px;
   background: #f7fafc;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .tableTop {
