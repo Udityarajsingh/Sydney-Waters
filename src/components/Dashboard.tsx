@@ -47,11 +47,11 @@ type DateRangeValue = {
 const AGE_FILTER_OPTIONS = [
   "below 12",
   "13 to 17",
-  "Under 18",
   "18 to 24",
   "25 to 34",
   "35 to 44",
-  "45 to 54"
+  "45 to 54",
+  "Above 55"
 ]
 
 const GENDER_FILTER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say"]
@@ -104,6 +104,7 @@ function displayAge(age?: string) {
   if (normalized === "25to34" || normalized === "25_to_34" || normalized === "25 to 34") return "25 to 34"
   if (normalized === "35to44" || normalized === "35_to_44" || normalized === "35 to 44") return "35 to 44"
   if (normalized === "45to54" || normalized === "45_to_54" || normalized === "45 to 54") return "45 to 54"
+  if (normalized === "above55" || normalized === "above_55" || normalized === "above 55") return "Above 55"
   if (normalized === "prefer_not_to_say" || normalized === "prefer not to say") return "Prefer not to say"
   return age ?? "Unknown"
 }

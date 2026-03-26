@@ -4,7 +4,7 @@ import quiz3 from "./assets/quiz_three_background.webp"
 import quiz4 from "./assets/quiz_four_background.webp"
 import quiz5 from "./assets/quiz_five_background.webp"
 import finalPage from "./assets/final_page.webp"
-
+  
 import clouds from "./assets/clouds.svg"
 import ufo from "./assets/ufo_whole.svg"
 import ufoBeam from "./assets/ufo_light.svg"

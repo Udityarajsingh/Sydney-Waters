@@ -27,11 +27,11 @@ import arrowDown from "../assets/extra/arrow_down.svg"
 
 import below12 from "../assets/below_12.svg"
 import age13to17 from "../assets/13_to_17.svg"
-import under18 from "../assets/extra/under_18.svg"
 import age18to24 from "../assets/extra/18to24.svg"
 import age25to34 from "../assets/extra/25to34.svg"
 import age35to44 from "../assets/extra/35to44.svg"
 import age45to54 from "../assets/extra/45to54.svg"
+import above55 from "../assets/above_55.svg"
 
 import maleImg from "../assets/extra/male.svg"
 import femaleImg from "../assets/extra/female.svg"
@@ -241,17 +241,6 @@ setOpenAge(false)
 
 <img src={line} className={styles.line}/>
 
-<img
-src={under18}
-className={`${styles.option} ${styles.optionUnder18}`}
-onClick={()=>{handleChange("age","under18")
-setAgeImgSelected(under18)
-setOpenAge(false)
-}}
-/>
-
-<img src={line} className={styles.line}/>
-
 <img src={age18to24}
 className={styles.option}
 onClick={()=>{handleChange("age","18to24")
@@ -284,6 +273,15 @@ setOpenAge(false)}}
 className={styles.option}
 onClick={()=>{handleChange("age","45to54")
 setAgeImgSelected(age45to54)
+setOpenAge(false)}}
+/>
+
+<img src={line} className={styles.line}/>
+
+<img src={above55}
+className={styles.option}
+onClick={()=>{handleChange("age","above_55")
+setAgeImgSelected(above55)
 setOpenAge(false)}}
 />
 

@@ -93,6 +93,9 @@
 .dropzoneFilled{
   background:#001969;
   border:2px solid #001969;
+  width:132px;
+  height:34px;
+  animation:qOptionThrob 0.28s ease-out 1;
 }
 
 .correctFlash{
@@ -207,6 +210,11 @@
   border-radius:18px;
 }
 
+.q2DropPill.dropzoneFilled{
+  width:122px;
+  height:42px;
+}
+
 .q2DropOne,
 .q2DropTwo,
 .q2DropThree,
@@ -278,9 +286,10 @@
 }
 
 .q3OptionText{
+  --q3-option-font-size:11px;
   color:#ffffff;
   font-family:Inter, sans-serif;
-  font-size:11px;
+  font-size:var(--q3-option-font-size);
   font-weight:600;
   line-height:1.05;
   text-align:center;
@@ -290,16 +299,21 @@
 .q3OptionSelected{
   background:#ffffff;
   border-color:#ffffff;
+  width:152px;
+  height:32px;
+  animation:qOptionThrob 0.28s ease-out 1;
 }
 
 .q3OptionSelected .q3OptionText{
   color:#161616;
+  font-size:calc(var(--q3-option-font-size) + 2px);
 }
 
 .q3OptionRejected{
   opacity:0.6;
   cursor:not-allowed;
   pointer-events:none;
+  animation:qOptionShake 0.32s ease-in-out 1;
 }
 
 .q3OptionRejected .q3OptionText{
@@ -308,7 +322,7 @@
 }
 
 .q3SmallLabel{
-  font-size:9px;
+  --q3-option-font-size:9px;
 }
 
 .q3G1CryRobots{
@@ -414,21 +428,92 @@
 .q4OptionSelected{
   background:#ffffff;
   border-color:#ffffff;
+  width:203px;
+  height:32px;
+  animation:qOptionThrobCentered 0.28s ease-out 1;
 }
 
 .q4OptionSelected .q4OptionText{
   color:#001969;
+  font-size:13px;
 }
 
 .q4OptionRejected{
   opacity:0.6;
   cursor:not-allowed;
   pointer-events:none;
+  animation:qOptionShakeCentered 0.32s ease-in-out 1;
 }
 
 .q4OptionRejected .q4OptionText{
   text-decoration:line-through;
   text-decoration-thickness:2px;
+}
+
+@keyframes qOptionThrob {
+  0% {
+    transform:scale(1);
+  }
+  45% {
+    transform:scale(1.06);
+  }
+  100% {
+    transform:scale(1);
+  }
+}
+
+@keyframes qOptionShake {
+  0% {
+    transform:translateX(0);
+  }
+  20% {
+    transform:translateX(-4px);
+  }
+  40% {
+    transform:translateX(4px);
+  }
+  60% {
+    transform:translateX(-3px);
+  }
+  80% {
+    transform:translateX(3px);
+  }
+  100% {
+    transform:translateX(0);
+  }
+}
+
+@keyframes qOptionThrobCentered {
+  0% {
+    transform:translateX(-50%) scale(1);
+  }
+  45% {
+    transform:translateX(-50%) scale(1.06);
+  }
+  100% {
+    transform:translateX(-50%) scale(1);
+  }
+}
+
+@keyframes qOptionShakeCentered {
+  0% {
+    transform:translateX(-50%);
+  }
+  20% {
+    transform:translateX(calc(-50% - 4px));
+  }
+  40% {
+    transform:translateX(calc(-50% + 4px));
+  }
+  60% {
+    transform:translateX(calc(-50% - 3px));
+  }
+  80% {
+    transform:translateX(calc(-50% + 3px));
+  }
+  100% {
+    transform:translateX(-50%);
+  }
 }
 
 /* ================= QUESTION NAV BUTTONS ================= */
@@ -553,8 +638,11 @@
 }
 
 .q5DropPill.dropzoneFilled{
+  width:92px;
+  height:65px;
   background:#001969;
   border:4px solid #001969;
+  animation:qOptionThrob 0.28s ease-out 1;
 }
 
 .q5DropWasteTop,
