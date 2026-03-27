@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { onValue, ref } from "firebase/database"
-import { db } from "../firebase"
+import { collection, onSnapshot } from "firebase/firestore"
+import { db, firestoreDb } from "../firebase"
 import styles from "./Dashboard.module.css"
 
 type DashboardView = "quiz" | "water_cycle_app"
@@ -38,6 +39,23 @@ type PlayerRecord = {
 }
 
 type PlayerWithId = PlayerRecord & { id: string }
+
+type DailyStatsRecord = {
+  id: string
+  date: string
+  dateMs: number | null
+  completeRuns: number
+  incompleteRuns: number
+  totalRuns: number
+}
+
+type ApplicationRunRecord = {
+  id: string
+  dateString: string
+  timeString: string
+  status: "complete" | "incomplete" | "unknown"
+  dateMs: number | null
+}
 
 type DateRangeValue = {
   from: string
@@ -129,23 +147,6 @@ function toInputDate(timestamp: number) {
   return `${year}-${month}-${day}`
 }
 
-function formatRangeLabel(range: DateRangeValue) {
-  if (!range.from || !range.to) {
-    return "Choose date range"
-  }
-
-  const from = new Date(`${range.from}T00:00:00`)
-  const to = new Date(`${range.to}T00:00:00`)
-
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric"
-  })
-
-  return `${formatter.format(from)} - ${formatter.format(to)}`
-}
-
 function fromInputDateToMsStart(value: string) {
   if (!value) return null
   return new Date(`${value}T00:00:00`).getTime()
@@ -154,6 +155,94 @@ function fromInputDateToMsStart(value: string) {
 function fromInputDateToMsEnd(value: string) {
   if (!value) return null
   return new Date(`${value}T23:59:59.999`).getTime()
+}
+
+function parseSafeNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) {
+      return parsed
+    }
+  }
+  return 0
+}
+
+function dateStringToStartMs(value: string | null | undefined) {
+  if (!value) return null
+  const parsed = new Date(`${value}T00:00:00`).getTime()
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function resolveTimestampMs(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toMillis" in value &&
+    typeof (value as { toMillis?: unknown }).toMillis === "function"
+  ) {
+    const millis = (value as { toMillis: () => number }).toMillis()
+    return Number.isFinite(millis) ? millis : null
+  }
+
+  return null
+}
+
+function normalizeRunStatus(value: unknown): "complete" | "incomplete" | "unknown" {
+  if (typeof value !== "string") {
+    return "unknown"
+  }
+
+  const normalized = value.trim().toLowerCase()
+  if (normalized === "complete") {
+    return "complete"
+  }
+  if (normalized === "incomplete") {
+    return "incomplete"
+  }
+
+  return "unknown"
+}
+
+function formatDateAndTime(value: number | null) {
+  if (value === null) {
+    return { date: "-", time: "-" }
+  }
+
+  const date = new Date(value)
+  const dateLabel = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date)
+
+  const timeLabel = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(date)
+
+  return {
+    date: dateLabel,
+    time: timeLabel
+  }
+}
+
+function displayRunStatus(status: "complete" | "incomplete" | "unknown") {
+  if (status === "complete") {
+    return "Complete"
+  }
+  if (status === "incomplete") {
+    return "Incomplete"
+  }
+  return "Unknown"
 }
 
 function getNegativeAnswerBadges(wrongAnswers: QuizWrongAnswers) {
@@ -205,13 +294,22 @@ export function Dashboard() {
   const [activeView, setActiveView] = useState<DashboardView>("quiz")
   const [players, setPlayers] = useState<PlayerWithId[]>([])
   const [readError, setReadError] = useState<string | null>(null)
+  const [usageReadError, setUsageReadError] = useState<string | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedAgeFilter, setSelectedAgeFilter] = useState("all")
   const [selectedGenderFilter, setSelectedGenderFilter] = useState("all")
+  const [dailyStats, setDailyStats] = useState<DailyStatsRecord[]>([])
+  const [applicationRuns, setApplicationRuns] = useState<ApplicationRunRecord[]>([])
+  const [appStatusFilter, setAppStatusFilter] = useState<"all" | "complete" | "incomplete">("all")
 
   const filterRef = useRef<HTMLDivElement | null>(null)
 
   const [dateRange, setDateRange] = useState<DateRangeValue>({
+    from: "",
+    to: ""
+  })
+
+  const [appDateRange, setAppDateRange] = useState<DateRangeValue>({
     from: "",
     to: ""
   })
@@ -258,6 +356,81 @@ export function Dashboard() {
   }, [])
 
   useEffect(() => {
+    const dailyStatsCollection = collection(firestoreDb, "dailyStats")
+    const applicationRunsCollection = collection(firestoreDb, "applicationRuns")
+
+    const unsubscribeDailyStats = onSnapshot(
+      dailyStatsCollection,
+      (snapshot) => {
+        setUsageReadError(null)
+        const rows: DailyStatsRecord[] = snapshot.docs.map((doc) => {
+          const data = doc.data() as Record<string, unknown>
+          const date = typeof data.date === "string" ? data.date : doc.id
+          const dateMs = dateStringToStartMs(date)
+          const completeRuns = parseSafeNumber(data.completeRuns)
+          const incompleteRuns = parseSafeNumber(data.incompleteRuns)
+          const totalRunsRaw = parseSafeNumber(data.totalRuns)
+          const totalRuns = totalRunsRaw > 0 ? totalRunsRaw : completeRuns + incompleteRuns
+
+          return {
+            id: doc.id,
+            date,
+            dateMs,
+            completeRuns,
+            incompleteRuns,
+            totalRuns
+          }
+        })
+
+        rows.sort((a, b) => (b.dateMs ?? 0) - (a.dateMs ?? 0))
+
+        setDailyStats(rows)
+      },
+      (error) => {
+        setDailyStats([])
+        setUsageReadError(error.message)
+      }
+    )
+
+    const unsubscribeApplicationRuns = onSnapshot(
+      applicationRunsCollection,
+      (snapshot) => {
+        setUsageReadError(null)
+
+        const rows: ApplicationRunRecord[] = snapshot.docs.map((doc) => {
+          const data = doc.data() as Record<string, unknown>
+          const dateFromString =
+            typeof data.dateString === "string" ? dateStringToStartMs(data.dateString) : null
+          const dateFromTimestamp = resolveTimestampMs(data.timestamp)
+          const dateMs = dateFromString ?? dateFromTimestamp
+          const dateAndTime = formatDateAndTime(dateMs)
+
+          return {
+            id: doc.id,
+            dateString: dateAndTime.date,
+            timeString: dateAndTime.time,
+            status: normalizeRunStatus(data.status),
+            dateMs
+          }
+        })
+
+        rows.sort((a, b) => (b.dateMs ?? 0) - (a.dateMs ?? 0))
+
+        setApplicationRuns(rows)
+      },
+      (error) => {
+        setApplicationRuns([])
+        setUsageReadError(error.message)
+      }
+    )
+
+    return () => {
+      unsubscribeDailyStats()
+      unsubscribeApplicationRuns()
+    }
+  }, [])
+
+  useEffect(() => {
     if (players.length === 0) {
       return
     }
@@ -278,6 +451,31 @@ export function Dashboard() {
       to: toInputDate(monthEnd.getTime())
     })
   }, [players])
+
+  useEffect(() => {
+    if (appDateRange.from || appDateRange.to) {
+      return
+    }
+
+    const allDates = [
+      ...dailyStats.map((row) => row.dateMs),
+      ...applicationRuns.map((row) => row.dateMs)
+    ].filter((value): value is number => typeof value === "number")
+
+    if (allDates.length === 0) {
+      return
+    }
+
+    const latestMs = Math.max(...allDates)
+    const latestDate = new Date(latestMs)
+    const monthStart = new Date(latestDate.getFullYear(), latestDate.getMonth(), 1)
+    const monthEnd = new Date(latestDate.getFullYear(), latestDate.getMonth() + 1, 0)
+
+    setAppDateRange({
+      from: toInputDate(monthStart.getTime()),
+      to: toInputDate(monthEnd.getTime())
+    })
+  }, [applicationRuns, appDateRange.from, appDateRange.to, dailyStats])
 
   useEffect(() => {
     function onGlobalPointer(event: PointerEvent) {
@@ -353,6 +551,64 @@ export function Dashboard() {
       negativeAnswersLogged
     }
   }, [dateRange.from, dateRange.to, players, selectedAgeFilter, selectedGenderFilter])
+
+  const appUsageDerived = useMemo(() => {
+    const startMs = fromInputDateToMsStart(appDateRange.from)
+    const endMs = fromInputDateToMsEnd(appDateRange.to)
+
+    const inRange = (dateMs: number | null) => {
+      if (dateMs === null) {
+        return false
+      }
+      if (startMs === null || endMs === null) {
+        return true
+      }
+      return dateMs >= startMs && dateMs <= endMs
+    }
+
+    const runsInDateRange = applicationRuns.filter((row) => inRange(row.dateMs))
+    const runsFilteredByStatus =
+      appStatusFilter === "all"
+        ? runsInDateRange
+        : runsInDateRange.filter((row) => row.status === appStatusFilter)
+
+    const dailyStatsInDateRange = dailyStats.filter((row) => inRange(row.dateMs))
+
+    const completeFromRuns = runsInDateRange.reduce((sum, row) => {
+      return row.status === "complete" ? sum + 1 : sum
+    }, 0)
+    const incompleteFromRuns = runsInDateRange.reduce((sum, row) => {
+      return row.status === "incomplete" ? sum + 1 : sum
+    }, 0)
+
+    const hasDailyStats = dailyStatsInDateRange.length > 0
+    const completeRuns = hasDailyStats
+      ? dailyStatsInDateRange.reduce((sum, row) => sum + row.completeRuns, 0)
+      : completeFromRuns
+    const incompleteRuns = hasDailyStats
+      ? dailyStatsInDateRange.reduce((sum, row) => sum + row.incompleteRuns, 0)
+      : incompleteFromRuns
+    const totalRuns = hasDailyStats
+      ? dailyStatsInDateRange.reduce((sum, row) => sum + row.totalRuns, 0)
+      : completeRuns + incompleteRuns
+
+    const filteredRuns =
+      appStatusFilter === "all"
+        ? totalRuns
+        : appStatusFilter === "complete"
+          ? completeRuns
+          : incompleteRuns
+
+    return {
+      runsInDateRange,
+      runsFilteredByStatus,
+      dailyStatsInDateRange,
+      totalRuns,
+      completeRuns,
+      incompleteRuns,
+      filteredRuns
+    }
+  }, [appDateRange.from, appDateRange.to, appStatusFilter, applicationRuns, dailyStats])
 
   function downloadQuizCsv() {
     const headers = [
@@ -587,19 +843,125 @@ export function Dashboard() {
           </p>
         </section>
 
-        <section className={styles.usageFilters}>
-          <input
-            className={styles.inlineControl}
-            type="text"
-            value={formatRangeLabel(dateRange)}
-            readOnly
-            aria-label="Selected date range"
-          />
+        <section className={styles.kpiGrid}>
+          <article className={styles.kpiCard}>
+            <p className={styles.kpiLabel}>Completed Runs</p>
+            <p className={styles.kpiValue}>{appUsageDerived.completeRuns.toLocaleString("en-US")}</p>
+          </article>
+          <article className={styles.kpiCard}>
+            <p className={styles.kpiLabel}>Incomplete Runs</p>
+            <p className={styles.kpiValue}>{appUsageDerived.incompleteRuns.toLocaleString("en-US")}</p>
+          </article>
+          <article className={styles.kpiCard}>
+            <p className={styles.kpiLabel}>Total Runs</p>
+            <p className={styles.kpiValue}>{appUsageDerived.totalRuns.toLocaleString("en-US")}</p>
+          </article>
         </section>
 
-        <section className={styles.usageCard}>
-          <p className={styles.usageCardLabel}>TOTAL APPLICATION RUNS</p>
-          <p className={styles.usageCardValue}>8,492</p>
+        <section className={styles.tableCard} style={{ marginBottom: "24px" }}>
+          <header className={styles.tableTop}>
+            <h2 className={styles.tableTitle}>Daily Stats</h2>
+          </header>
+
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Complete Runs</th>
+                  <th>Incomplete Runs</th>
+                  <th>Total Runs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appUsageDerived.dailyStatsInDateRange.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className={styles.noData}>
+                      No daily stats match the selected date range.
+                    </td>
+                  </tr>
+                )}
+
+                {appUsageDerived.dailyStatsInDateRange.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.date}</td>
+                    <td>{row.completeRuns.toLocaleString("en-US")}</td>
+                    <td>{row.incompleteRuns.toLocaleString("en-US")}</td>
+                    <td>{row.totalRuns.toLocaleString("en-US")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className={styles.tableCard}>
+          <header className={styles.tableTop}>
+            <h2 className={styles.tableTitle}>Application Runs</h2>
+            <div className={styles.tableControls}>
+              <input
+                type="date"
+                className={styles.inlineControl}
+                value={appDateRange.from}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setAppDateRange((current) => ({ ...current, from: next }))
+                }}
+                aria-label="Filter water cycle from date"
+              />
+              <input
+                type="date"
+                className={styles.inlineControl}
+                value={appDateRange.to}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setAppDateRange((current) => ({ ...current, to: next }))
+                }}
+                aria-label="Filter water cycle to date"
+              />
+              <select
+                className={styles.inlineControl}
+                value={appStatusFilter}
+                onChange={(event) =>
+                  setAppStatusFilter(event.target.value as "all" | "complete" | "incomplete")
+                }
+                aria-label="Filter water cycle by completion status"
+              >
+                <option value="all">All Statuses</option>
+                <option value="complete">Complete</option>
+                <option value="incomplete">Incomplete</option>
+              </select>
+            </div>
+          </header>
+
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Run ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appUsageDerived.runsFilteredByStatus.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className={styles.noData}>
+                      No application runs match the selected filters.
+                    </td>
+                  </tr>
+                )}
+
+                {appUsageDerived.runsFilteredByStatus.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.dateString}</td>
+                    <td>{displayRunStatus(row.status)}</td>
+                    <td>{row.id}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       </>
     )
@@ -719,6 +1081,9 @@ export function Dashboard() {
 
         <section className={styles.content}>
           {readError && <p className={styles.error}>Firebase read error: {readError}</p>}
+          {usageReadError && activeView === "water_cycle_app" && (
+            <p className={styles.error}>Firestore read error: {usageReadError}</p>
+          )}
           {activeView === "quiz" ? renderQuiz() : renderApplicationUsage()}
         </section>
       </section>
