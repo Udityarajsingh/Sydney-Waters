@@ -26,8 +26,8 @@ import stormwater from "./assets/Stormwater.svg"
 import purified from "./assets/Purified_Water.svg"
 import dams from "./assets/Dams_Rivers.svg"
 
-import correctPage from "./assets/correct_page.svg"
-import correctNext from "./assets/correct_page_next.svg"
+import correctPage from "./assets/correct_page.png"
+import correctNext from "./assets/correct_page_next.png"
 
 import playAgain from "./assets/play_again.svg"
 
